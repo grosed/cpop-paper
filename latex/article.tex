@@ -1,5 +1,5 @@
-\documentclass[article]{jss}
-%\documentclass[nojss]{jss}
+%\documentclass[article]{jss}
+\documentclass[nojss]{jss}
 \usepackage{subfig}
 
 
@@ -13,13 +13,13 @@
 \title{\pkg{cpop}: Detecting changes in piecewise-linear signals}
 
 %% for pretty printing and a nice hypersummary also set:
-\Plainauthor{Paul Fearnhead, Dan Grose} %% comma-separated
+\Plainauthor{Paul Fearnhead, Daniel Grose} %% comma-separated
 \Plaintitle{\pkg{cpop}: Detecting changes in piecewise-linear signals} %% without formatting
 \Shorttitle{\pkg{cpop}: Changes in slope} %% a short title (if necessary)
 
 %% an abstract and keywords
 \Abstract{
-Changepoint detection is an important problem with applications across many application domains. There are many different types of changes that one may wish to detect, and a wide-range of algorithms and software for detecting them. However there are relatively few approaches for detecting changes-in-slope in the mean of a signal plus noise model. We describe the \proglang{R} package, \pkg{cpop}, available on the Comprehensive R Archive Network (CRAN). This package implements CPOP, a dynamic programming algorithm, to find the optimal set of changes that minimises an $L_0$ penalised cost, with the cost being a weighted residual sum of squares. The package has extended the CPOP algorithm so it can analyse data that is unevenly spaced, allow for heterogeneous noise variance, and allows for a grid of potential change locations to be different from the locations of the data points. There is also an implementation of that uses the CROPS algorithm to detect all segmentations that are optimal as you vary the $L_0$ penalty for adding a change across a continuous range of values.
+Changepoint detection is an important problem with applications across many application domains. There are many different types of changes that one may wish to detect, and a wide-range of algorithms and software for detecting them. However there are relatively few approaches for detecting changes-in-slope in the mean of a signal plus noise model. We describe the \proglang{R} package, \pkg{cpop}, available on the Comprehensive R Archive Network (CRAN). This package implements CPOP, a dynamic programming algorithm, to find the optimal set of changes that minimises an $L_0$ penalised cost, with the cost being a weighted residual sum of squares. The package has extended the CPOP algorithm so it can analyse data that is unevenly spaced, allow for heterogeneous noise variance, and allows for a grid of potential change locations to be different from the locations of the data points. There is also an implementation that uses the CROPS algorithm to detect all segmentations that are optimal as you vary the $L_0$ penalty for adding a change across a continuous range of values.
 }
 \Keywords{changepoints, change-in-slope, dynamic programming, piecewise linear models, structural breaks}
 \Plainkeywords{changepoints, change-in-slope, dynamic programming, piecewise linear models, structural breaks} %% without formatting
@@ -180,9 +180,9 @@ The \pkg{cpop} package has functions to simulate data from a change-in-slope mod
 \subsection{Generating Simulated Data}
 %
 %
-The \code{simulate} function allows for simulating data from a change-in-slope model (\ref{eq:cinslope}): %. It takes as input the $x$-values of the data points, the locations of the changes, how much the slop of the mean changes at each changepoint, and the standard deviation of the noise:
+The \code{simchangeslope} function allows for simulating data from a change-in-slope model (\ref{eq:cinslope}): %. It takes as input the $x$-values of the data points, the locations of the changes, how much the slop of the mean changes at each changepoint, and the standard deviation of the noise:
 \begin{CodeInput}
-simulate(x, changepoints, change.slope, sd = 1)
+simchangeslope(x, changepoints, change.slope, sd = 1)
 \end{CodeInput}
 %
 %
@@ -200,7 +200,7 @@ It returns a vector $y$ of simulated values which correspond to the locations $x
 %
 The mean function of the data goes through the origin -- but to add an intercept we just add a constant to all output values. It is possible to get the value of the mean function at the $x$-values of the data by setting \code{sd=0}.
 
-The following code demonstrates the \code{simulate} function and displays the data along with the (true) line segments and the locations of the changes in slope (see Figure \ref{fig:simulate-example}).
+The following code demonstrates the \code{simchangeslope} function and displays the data along with the (true) line segments and the locations of the changes in slope (see Figure \ref{fig:simulate-example}).
 \begin{CodeChunk}
 \begin{CodeInput}
 R> library("cpop")
@@ -209,14 +209,14 @@ R> changepoints <- c(0, 25, 50, 100)
 R> change.slope <- c(0.2, -0.3, 0.2, -0.1)
 R> x <- 1:200
 R> sd <- 0.8
-R> y <- simulate(x, changepoints, change.slope, sd)
+R> y <- simchangeslope(x, changepoints, change.slope, sd)
 R> df <- data.frame("x" = x, "y" = y)
 R> p <- ggplot(data = df, aes(x = x, y = y))
 R> p <- p + geom_point(alpha = 0.4)
 R> p <- p + geom_vline(xintercept = changepoints,
 +                      color = "red",
 +                      linetype = "dashed")
-R> mu <- simulate(x, changepoints, change.slope, sd = 0)
+R> mu <- simchangeslope(x, changepoints, change.slope, sd = 0)
 R> p <- p + geom_line(aes(y = mu), color = "blue")
 R> p <- p + theme_bw()
 R> print(p)
@@ -396,7 +396,7 @@ R> head(residuals(res))
 
 \subsection{Irregularly Sampled Data}
 
-The \pkg{cpop} package allows for irregularly spaced data, both when simulating data and when running the CPOP algorithm. The only change to the previous code that we need to make is to change the definition of \code{x} that is input to \pkg{simulate}.
+The \pkg{cpop} package allows for irregularly spaced data, both when simulating data and when running the CPOP algorithm. The only change to the previous code that we need to make is to change the definition of \code{x} that is input to \code{simchangeslope}.
 
 \begin{CodeChunk}
 \begin{CodeInput}
@@ -404,7 +404,7 @@ R> x <- (1:200)^(2)/(200)
 R> changepoints <- c(0, 25, 50, 100)
 R> change.slope <- c(0.2, -0.3, 0.2, -0.1)
 R> sd <- 0.8
-R> y <- simulate(x, changepoints, change.slope, sd)
+R> y <- simchangeslope(x, changepoints, change.slope, sd)
 \end{CodeInput}
 \end{CodeChunk}
 
@@ -435,7 +435,7 @@ To simulate heterogeneous data we just input a vector of the standard deviation 
 \begin{CodeInput}
 R> x <- 1:200
 R> sd <- x / 100
-R> y <- simulate(x, changepoints, change.slope, sd))
+R> y <- simchangeslope(x, changepoints, change.slope, sd))
 \end{CodeInput}
 \end{CodeChunk}
 %
@@ -445,7 +445,7 @@ Here the values of \code{changepoints} and \code{change.slope} are as before.
 It is interesting to compare two estimates of the changepoints, one where we assume a fixed noise standard deviation, and one where we assume the true noise standard deviation. For the former it is natural to set this value so the the average variance of the noise is correct. 
 \begin{CodeChunk}
 \begin{CodeInput}
-R> res <- cpop(y, x, sd = sqrt(mean(sd^2)) )
+R> res <- cpop(y, x, sd = sqrt(mean(sd^2)))
 R> res.true <- cpop(y, x, sd = sd)
 \end{CodeInput}
 \end{CodeChunk}
@@ -490,11 +490,11 @@ The computational cost for \code{cpop} increases with the size of the number of 
 
 Thus for large data sets, we can substantially reduce the computational cost of running \code{cpop} by using a smaller grid of potential change locations. Obviously this comes with the drawback of a potential loss of accuracy with regards to the estimated changepoint locations. However one possible approach is to run \code{cpop} with a coarse grid, and then re-run the algorithm with a finer grid around the estimated changepoints.
 
-To see this we implemented the scheme for a data set with $n=6400$ and a fixed segment size of 200.  We initially ran \code{cpop} with a grid of size 400.
+To see this we implemented the scheme for a data set with $n=6400$ and a fixed segment size of 200.  We initially ran \code{cpop} with a grid with potential changes allowed every 16 observations.
 \begin{CodeChunk}
 \begin{CodeInput}
 R> x <- 1:6400
-R> y <- simulate(x, changepoints = 0:31*200, 
+R> y <- simchangeslope(x, changepoints = 0:31*200, 
 + change.slope = c(0.05,0.1*(-1)^(1:(31))), sigma = 1)
 \end{CodeInput}
 \end{CodeChunk}
@@ -502,21 +502,22 @@ R> y <- simulate(x, changepoints = 0:31*200,
 We use a smaller value for the penalty due to the smaller grid size, and the fact that this is a preliminary step to find roughly where the changes are: so the key is to avoid missing changes. Spurious changes can still be removed when we perform our final run of \code{cpop}. 
 \begin{CodeChunk}
 \begin{CodeInput}
-R> res.coarse <- cpop(y, x, grid=1:399*16, beta = 2 * log(400) )
+R> res.coarse <- cpop(y, x, grid=1:399*16, beta = 2 * log(400))
 \end{CodeInput}
 \end{CodeChunk}
 
 In our example we find 38 changepoints with this coarse grid. We then introduce a finer grid around these putative changes: our new grid includes all $x$-values within 8 of each putative changepoint.
 \begin{CodeChunk}
 \begin{CodeInput}
-R> cps <- unlist( changepoints(res.coarse) )
+R> cps <- unlist(changepoints(res.coarse))
 
 R> grid <- NULL
-R> for(i in 1:length(cps)){
-R>   grid <- c(grid, cps[i] + (-7):8 )
+R> for(i in 1:length(cps))
+R> {
+R>   grid <- c(grid, cps[i] + (-7):8)
 R> }
 
-R> res.fine <- cpop(y, x, grid, beta = 2 * log( length(x) ) )
+R> res.fine <- cpop(y, x, grid, beta = 2 * log(length(x)))
 \end{CodeInput}
 \end{CodeChunk}
 
@@ -526,14 +527,14 @@ This gives a computational saving of between 10 to 100 over the default running 
 
 The \code{cpop} function allows the user to specify a minimum segment length -- and this is defined as the minimum $x$-distance allowed between two estimated changepoints. Specifying a minimum segment length can make the method more robust to point outliers or noise that is heavier-tailed than Gaussian: as minimising (\ref{eq:penalised_cost}) can lead to over-fitting in such scenarios and this over-fitting tends to be through adding clusters of changepoints close together to fit the noise in the data. There are two disadvantages of imposing a minimum segment length. First it can cause true changes to be missed if they are closer together than the specified minimum segment length. Second \code{cpop} is slower when a minimum segment length is imposed.
 
-To see these issues, we simulated data as in Section \ref{sec:cpop}, except that we assumed the noise was $t_4$ distributed. We cannot simulate such data directly with \code{simulate}, so we need to first use \code{simulate} to calculate the mean function, and then add the noise:
+To see these issues, we simulated data as in Section \ref{sec:cpop}, except that we assumed the noise was $t_4$ distributed. We cannot simulate such data directly with \code{simchangeslope}, so we need to first use \code{simchangeslope} to calculate the mean function, and then add the noise:
 
 \begin{CodeChunk}
 \begin{CodeInput}
 R> changepoints <- c(0, 25, 50, 100)
 R> change.slope <- c(0.2, -0.3, 0.2, -0.1)
 R> x <- 1:200
-R> mu <- simulate(x, changepoints, change.slope, sigma = 0)
+R> mu <- simchangeslope(x, changepoints, change.slope, sigma = 0)
 
 R> y <- mu + rt(length(x), df = 4)
 \end{CodeInput}
@@ -600,7 +601,7 @@ To see the use of \code{cpop.crops}, consider an application where we do not kno
 
 We simulated data as per Section \ref{sec:cpop} but with \code{sd = 1.5}. To run CPOP for a range of $\beta\in[7.5, 50]$ we use
 \begin{CodeInput}
-R> res.crops <- cpop.crops(y , x, beta_min= 5 ,beta_max= 50)
+R> res.crops <- cpop.crops(y, x, beta_min = 5, beta_max = 50)
 \end{CodeInput}
 For our example $2 \log n = 10.6$, so this is equivalent to trying noise standard deviation in the range $[0.8,2.2]$. 
 
@@ -624,11 +625,12 @@ Here $\hat{f}$ is the estimated mean function and $K$ is the number of changepoi
 R> models <- cpop.crops.models(res.crops)
 R> M <- length(models)
 R> BIC <- rep(NA, M)
-R> ncps <- segmentations( res.crops )[,4]
+R> ncps <- segmentations(res.crops )[,4]
 R> n <- length(y)
-R> for(j in 1:M){
-R>   BIC[i] <- n * log( mean( ( residuals(models[[j]]) )^2) )
-   + 2 * ncps[i]  * log(n)
+R> for(j in 1:M)
+R> {
+R>   BIC[i] <- n * log(mean((residuals(models[[j]]))^2)) 
++    + 2 * ncps[i] * log(n)
 R> }
 \end{CodeInput}
 \end{CodeChunk}
@@ -660,15 +662,15 @@ This uses that the fourth column of the matrix \code{segmentations( res.crops )}
 %
 As a final example, we performed a similar analysis but with correlated noise. This violates the assumption of IID noise that underpins the default choice of penalty, thus we run \code{cpop.crops} for a range of penalties. 
 
-We simulated data with $n=500$ data points and $10$ equally spaced changpoints.
+We simulated data with $n=500$ data points and $10$ equally spaced changepoints.
 \begin{CodeChunk}
 \begin{CodeInput}
 R> n <- 500
 R> x <- 1:n
-R> mu <- simulate(x, changepoints = 45*0:10, 
+R> mu <- simchangeslope(x, changepoints = 45*0:10, 
 +  change.slope = c(0.15,0.3*(-1)^(1:10)), sd = 0)
 R> epsilon <- rnorm(n+2)
-R> y <- mu + (epsilon[1:n] + epsilon[2:(n+1)] + epsilon[3:(n+2)]) /sqrt(3)
+R> y <- mu + (epsilon[1:n] + epsilon[2:(n+1)] + epsilon[3:(n+2)]) / sqrt(3)
 \end{CodeInput}
 \end{CodeChunk}
 The noise is MA(3), and we simulate the data by first calculating the mean function, \code{mu}, and then adding the MA(3) noise.
@@ -710,7 +712,7 @@ The plot gives a clear elbow, see Figure \ref{fig:crops.cpopB}, and this corresp
 \begin{figure}
 \centering
 {\includegraphics{figures/cpop_crops_ggplot.pdf}}
-\caption{Correlated noise example. Output from \code{cpop.crops} (top left), unpenalised cost against number of changepoint (rop right) and estimate from segmentation corresponding to "elbow" (bottom).}
+\caption{Correlated noise example. Output from \code{cpop.crops} (top left), unpenalised cost against number of changepoint (top right) and estimate from segmentation corresponding to "elbow" (bottom).}
 \label{fig:crops.cpopB}
 \end{figure}
 
@@ -723,8 +725,8 @@ Interest lies in estimating the rate of decay of the log-spectra against log-wav
 \begin{CodeChunk}
 \begin{CodeInput}
 R> data("wavenumber_spectra")
-R> x <- log( wavenumber_spectra[ -(1:3), 1] )
-R> y <- log( wavenumber_spectra[ -(1:3), 4] )
+R> x <- log(wavenumber_spectra[-(1:3),1])
+R> y <- log(wavenumber_spectra[-(1:3),4])
 
 R> grid <- seq(from = min(x), to = max(x), length = 200)
 
@@ -748,14 +750,15 @@ The output is shown in the top-right plot of Figure \ref{fig:crops.data}, and ap
 \begin{CodeChunk}
 \begin{CodeInput}
 R> r2 <- residuals(res)^2
-R> loglik <- function(par){ 
+R> loglik <- function(par)
+R> { 
 R>  return(length(r2) * par[1] + par[2] * sum(x) 
-  + sum( r2/ (exp(par[1]+par[2]*x) )) )
+  + sum(r2 / (exp(par[1]+par[2]*x))))
 R> }
-
-R> est.hat <- optim( c(0,0) , loglik)
+R> est.hat <- optim(c(0,0), loglik)
 R> sig2 <- exp(est.hat$par[1] + est.hat$par[2]*x)
-R> res2 <- cpop(y, x, grid , sd=sqrt(sig2), minseg= 0.2, beta=2 * log(200))
+R> res2 <- cpop(y, x, grid, sd = sqrt(sig2), 
++               minseg = 0.2, beta =2 * log(200))
 \end{CodeInput}
 \end{CodeChunk}
 Here we have calculated the maximum likelihood estimates by using \code{optim} to minimise minus the log-likelihood. The resulting output from \code{cpop} is shown in the bottom left plot of Figure \ref{fig:crops.data}.  The first two changes could represent real regime transitions relating to the inviscid fluid physics that one would see in the real ocean \cite[see Figure 6a of][]{callies2013interpreting}, while the three changes for the largest values of \code{x} may relate to a breakdown in the numerical ocean model near the highest wavenumber of the ocean model grid \cite[]{soufflet2016effective}. The estimates of the spectra for all four series, obtained by repeating this approach, is also shown in Figure \ref{fig:crops.data}. For this application, the residuals from the fitted model appear to be uncorrelated and sub-Gaussian, so using the fit based on the default penalty choice is reasonable. Though one could also explore segmentations for other penalty choices using \code{cpop.crops} as in the previous section.
@@ -791,12 +794,12 @@ q_{i}^{(k)}(\alpha')+\mathcal{C}_{k,l}(\alpha',\alpha) + \beta
 \right]
 \right\}.
 \]
-So we only need to be able to calculate $\min_{\alpha'} [q(\alpha')+\mathcal{C}_{l-1,l}(\alpha',\alpha)]$, for any known quadratic $q(\alpha')$. In the following, we will denote the co-efficients of $q(\alpha')$ by $a$, $b$ and $c$, so
+So we only need to be able to calculate $\min_{\alpha'} [q(\alpha')+\mathcal{C}_{l-1,l}(\alpha',\alpha)]$, for any known quadratic $q(\alpha')$. In the following, we will denote the co-coefficients of $q(\alpha')$ by $a$, $b$ and $c$, so
 \[
 q(\alpha')=a+b\alpha' + c\alpha'^2.
 \]
 
-Our approach will be to (i)  calculate the co-efficients of $\mathcal{C}_{k,l}(\alpha',\alpha)$ in constant time, through the use of summary statistics; (ii) calculate the co-efficients of the sum $q_{i}^{(k)}(\alpha')+\mathcal{C}_{k,l}(\alpha',\alpha) + \beta$; (iii) calculate the co-efficients of the quadratic in $\alpha$ after we minimise with respect to $\alpha'$. Steps (ii) and (iii) are trivial, but we give details below for completeness.
+Our approach will be to (i)  calculate the co-coefficients of $\mathcal{C}_{k,l}(\alpha',\alpha)$ in constant time, through the use of summary statistics; (ii) calculate the co-coefficients of the sum $q_{i}^{(k)}(\alpha')+\mathcal{C}_{k,l}(\alpha',\alpha) + \beta$; (iii) calculate the co-coefficients of the quadratic in $\alpha$ after we minimise with respect to $\alpha'$. Steps (ii) and (iii) are trivial, but we give details below for completeness.
 
 To simplify the exposition in the following we will use the convention that expressions that are of the form $0/0$ are equal to 0.
 
@@ -809,7 +812,7 @@ S^{(X)}_k=\sum_{i=1}^{n_k} \frac{x_i}{\sigma_i^2},~~S^{(XX)}_k=\sum_{i=1}^{n_k} 
 \]
 All summary statistics with sub-script 0, or that involve an empty sum, such that $n_k=0$, are defined to be 0.
 
-If we then define the co-efficients of $\mathcal{C}_{k,l}(\alpha',\alpha)$, so that
+If we then define the co-coefficients of $\mathcal{C}_{k,l}(\alpha',\alpha)$, so that
 \[
 \mathcal{C}_{k,l}(\alpha',\alpha)=A\alpha^2+B\alpha\alpha'+C\alpha+D+E\alpha'+F\alpha'^2,
 \]
