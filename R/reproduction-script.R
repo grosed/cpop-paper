@@ -1,5 +1,5 @@
 # cpop: Detecting Changes in Piecewise-Linear Signals
-## Paul Fearnhead and Danel Grose
+## Paul Fearnhead and Daniel Grose
 ## Section 1
 ### Figure 1
 #### simulate data
@@ -14,7 +14,7 @@ mu <- simchangeslope(x,changepoints=changepoints,change.slope=c(0.5,(-1)^(1:7))/
 #### implement three different methods
 #### 1. cpop
 
-res <- cpop(y) 
+res <- cpop(y,sd=1) 
 
 #### 2. difference data and analyse as change in mean
 
@@ -80,7 +80,7 @@ library(gridExtra)
 
 g <- grid.arrange(p.1,p.2,p.3,p.4 ,nrow = 2,ncol=2)
 
-#ggsave(file="change_in_slope_examples_ggplot.pdf", g)
+ggsave(file="change_in_slope_examples_ggplot.pdf", g)
 
 ## Section 3.1
 
@@ -103,12 +103,12 @@ print(p)
 
 #### Figure 2
 
-#ggsave(file="simulate_example_ggplot.pdf",p)
+ggsave(file="simulate_example_ggplot.pdf",p)
 
 ## Section 3.2
 
 ##analysis by cpop
-res <- cpop(y, x, sd = 0.8)
+res <- cpop(y, x, beta = 2*log(length(y)), sd = 0.8)
 summary(res)
 
 p <- plot(res)
@@ -118,7 +118,7 @@ print(p)
 
 #### Figure 3
 
-#ggsave(file="cpop_example1_ggplot.pdf",p)
+ggsave(file="cpop_example1_ggplot.pdf",p)
 
 ## Section 3.3
 
@@ -139,7 +139,7 @@ change.slope <- c(0.2, -0.3, 0.2, -0.1)
 sd <- 0.8
 y <- simchangeslope(x, changepoints, change.slope, sd) #simulate data
 ##analysis by cpop
-res <- cpop(y, x, sd = 0.8)
+res <- cpop(y, x, beta = 2*log(length(y)), sd = 0.8)
 
 #### Figure 4
 
@@ -149,7 +149,7 @@ p <- plot(res)
 p <- p + geom_vline(xintercept = changepoints[-1], color = "blue", linetype = "dashed")
 p <- p + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 print(p)
-#ggsave(file="cpop_example_uneven_ggplot.pdf",p)
+ggsave(file="cpop_example_uneven_ggplot.pdf",p)
 
 
 ## Section 4.2
@@ -161,9 +161,9 @@ x <- 1:200
 sd <- x/100
 y <- simchangeslope(x, changepoints, change.slope, sd) #simulate data
 ##analysis by cpop
-res <- cpop(y, x, sd = sqrt(mean(sd^2)) )
+res <- cpop(y, x, beta = 2*log(length(y)), sd = sqrt(mean(sd^2)) )
 #summary(res)
-res.true <- cpop(y, x, sd=sd)
+res.true <- cpop(y, x, beta = 2*log(length(y)), sd=sd)
 
 #### Figure 5
 
@@ -178,7 +178,7 @@ p.true <- p.true + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 p <- p + theme(aspect.ratio=1/1)
 p.true <- p.true + theme(aspect.ratio=1/1)
 g <- grid.arrange(p,p.true,nrow=1,ncol=2)
-#ggsave(file="cpop_uneven_examples_ggplot.pdf",g)
+ggsave(file="cpop_uneven_examples_ggplot.pdf",g)
 
 ##  Section 4.3
 
@@ -187,7 +187,7 @@ set.seed(1)
 x <- 1:6400
 y <- simchangeslope(x, changepoints = 0:31*200, change.slope = c(0.05,0.1*(-1)^(1:(31))), sd = 1)
 
-res.coarse <- cpop(y, x, grid=1:399*16, beta = 2*log(400))
+res.coarse <- cpop(y, x, grid=1:399*16, beta = 2*log(400), sd = 1)
 cps <- unlist( changepoints(res.coarse) )
 
 grid <- NULL
@@ -195,9 +195,9 @@ for(i in 1:length(cps)){
   grid <- c(grid, cps[i] + (-7):8 )
 }
 
-res.fine <- cpop(y, x, grid, beta = 2*log(length(x)))
+res.fine <- cpop(y, x, grid, beta = 2*log(length(x)), sd = 1)
 
-res<- cpop(y, x, beta = 2*log(length(x)))
+res<- cpop(y, x, beta = 2*log(length(y)), sd = 1)
 
 ##  compare output with default run of cpop 
 summary(res.fine) 
@@ -215,8 +215,8 @@ summary(res)
     n <- n.st[i]
     for(k in 1:K){
       y <- simchangeslope(1:n,n/2,0.5,1)
-      time1[k,i] <- (system.time(cpop(y)))[1]
-      time1g[k,i] <- (system.time(cpop(y,grid=(1:n.st[1])*(n/n.st[1]))))[1]
+      time1[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1)))[1]
+      time1g[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1,grid=(1:n.st[1])*(n/n.st[1]))))[1]
     }
   }
   
@@ -230,8 +230,8 @@ summary(res)
     for(k in 1:K){
       m <- 2*n/n.st[1]
       y <- simchangeslope(1:n,0:(m-1)*n/m,c(0.05,0.1*(-1)^(1:(m-1))),1)
-      time2[k,i] <- (system.time(cpop(y)))[1]
-      time2g[k,i] <- (system.time(cpop(y,grid=(1:n.st[1])*(n/n.st[1]))))[1]
+      time2[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1)))[1]
+      time2g[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1,grid=(1:n.st[1])*(n/n.st[1]))))[1]
     }
   }
 #  save(time1,time2,time1g,time2g,file="/Users/paulfearnhead/Dropbox/Apps/Overleaf/JSS: CPOP/time.Rdata")
@@ -262,7 +262,7 @@ p <- p + scale_y_continuous(trans = 'log10')
 p <- p + xlab("n") + ylab("CPU time (sec)")
 p <- p + theme_bw()
 print(p)
-#ggsave(file="cpop_CPU_ggplot.pdf", p)
+ggsave(file="cpop_CPU_ggplot.pdf", p)
 
 ## Section 4.4
 
@@ -313,7 +313,7 @@ p.4 <- p.4 + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 
 g <- grid.arrange(p.1,p.2,p.3,p.4 ,nrow = 2,ncol=2)
 
-#ggsave(file="cpop_minseg_ggplot.pdf", g)
+ggsave(file="cpop_minseg_ggplot.pdf", g)
 
 ## Section 4.5
 
@@ -325,7 +325,7 @@ x <- 1:200
 mu <- simchangeslope(x, changepoints, change.slope,  0) #mean
 y <- simchangeslope(x, changepoints, change.slope, 1.5) #data with sd=1.5
 ###run crops
-res.crops <- cpop.crops(y , x, beta_min= 5 ,beta_max= 50)
+res.crops <- cpop.crops(y , x, beta_min= 5 ,beta_max= 50, sd = 1)
 plot(res.crops)
 
 ##calculate the BIC under a model of unknown variance
@@ -349,7 +349,7 @@ p.1 <- p.1 + theme(aspect.ratio=1/1)
 p.2 <- p.2 + theme(aspect.ratio=1/1)
 library(cowplot)
 g <- plot_grid(p.1, p.2, align = "v", nrow = 1)
-#ggsave(file="cpop_crops_example_ggplot.pdf",g)
+ggsave(file="cpop_crops_example_ggplot.pdf",g)
 plot(g)
 
 set.seed(1)
@@ -359,7 +359,7 @@ mu <- simchangeslope(x,changepoints = 45*0:10,change.slope = c(0.15,0.3*(-1)^(1:
 epsilon <- rnorm(n+2)
 y <- mu + (epsilon[1:n] + epsilon[2:(n+1)] + epsilon[3:(n+2)]) /sqrt(3)
 
-res.crops <- cpop.crops(y,x,beta_min=8,beta_max=200)
+res.crops <- cpop.crops(y,x,beta_min=8,beta_max=200,sd=1)
 segs <- segmentations(res.crops)
 
 p <- ggplot(data = segs, aes(x = m))
@@ -384,7 +384,7 @@ p <- p + geom_vline(xintercept = 45*1:10, color = "blue", linetype = "dashed")
 p.3 <- p + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 
 g <- grid.arrange(p.1,p.2,p.3,layout_matrix=rbind(c(1,2),c(3,3)))
-#ggsave(file="cpop_crops_ggplot.pdf",g)
+ggsave(file="cpop_crops_ggplot.pdf",g)
 
 ## Section 5 
 
@@ -398,7 +398,7 @@ grid <- seq(from=min(x),to=max(x),length=200)
 ##naive estimator of variance
 sig2 <- mean( diff( diff(y) )^2 )/6 ##simple estimate of variance 
 
-res <- cpop(y, x, grid, sd=sqrt(sig2), minseg = 0.09, beta=2*log(200))
+res <- cpop(y, x, grid, sd=sqrt(sig2), minseglen = 0.09, beta=2*log(200))
 
 r2 <- residuals(res)^2
 ##estimate variance as exp(a+bx)
@@ -410,7 +410,7 @@ loglik <- function(par){
 est.hat <- optim( c(0,0) , loglik)
 sig2 <- exp(est.hat$par[1] + est.hat$par[2]*x)
 
-res2 <- cpop(y, x, grid , sd=sqrt(sig2), minseg= 0.09, beta=2 * log(200))
+res2 <- cpop(y, x, grid , sd=sqrt(sig2), minseglen = 0.09, beta=2 * log(200))
 
 #### Figure 10
 
@@ -423,13 +423,13 @@ wavenumber_est <- function(x,y){
   ##naive estimator of variance
   sig2 <- mean( diff( diff(y) )^2 )/6 ##simple estimate of variance 
   
-  res <- cpop(y, x, grid, sd=sqrt(sig2), minseg = 0.09, beta=2*log(200))
+  res <- cpop(y, x, grid, sd=sqrt(sig2), minseglen = 0.09, beta=2*log(200))
  
   r2 <- residuals(res)^2
   est.hat <- optim( c(0,0) , loglik)
   sig2 <- exp(est.hat$par[1] + est.hat$par[2]*x)
   
-  res2 <- cpop(y, x, grid , sd=sqrt(sig2), minseg = 0.09, beta=2 * log(200))
+  res2 <- cpop(y, x, grid , sd=sqrt(sig2), minseglen = 0.09, beta=2 * log(200))
   
   return(res2)
 }
@@ -483,4 +483,4 @@ p.4 <- p + theme_bw()
 g <- grid.arrange(p.1,p.2,p.3,p.4,nrow=2,ncol=2)
 
 print(g)
-#ggsave(file="cpop_real_data_ggplot.pdf",g)
+ggsave(file="cpop_real_data_ggplot.pdf",g)
