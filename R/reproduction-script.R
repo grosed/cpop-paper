@@ -80,7 +80,7 @@ library(gridExtra)
 
 g <- grid.arrange(p.1,p.2,p.3,p.4 ,nrow = 2,ncol=2)
 
-ggsave(file="change_in_slope_examples_ggplot.pdf", g)
+#ggsave(file="change_in_slope_examples_ggplot.pdf", g)
 
 ## Section 3.1
 
@@ -103,7 +103,7 @@ print(p)
 
 #### Figure 2
 
-ggsave(file="simulate_example_ggplot.pdf",p)
+#ggsave(file="simulate_example_ggplot.pdf",p)
 
 ## Section 3.2
 
@@ -118,7 +118,7 @@ print(p)
 
 #### Figure 3
 
-ggsave(file="cpop_example1_ggplot.pdf",p)
+#ggsave(file="cpop_example1_ggplot.pdf",p)
 
 ## Section 3.3
 
@@ -149,7 +149,7 @@ p <- plot(res)
 p <- p + geom_vline(xintercept = changepoints[-1], color = "blue", linetype = "dashed")
 p <- p + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 print(p)
-ggsave(file="cpop_example_uneven_ggplot.pdf",p)
+#ggsave(file="cpop_example_uneven_ggplot.pdf",p)
 
 
 ## Section 4.2
@@ -178,7 +178,7 @@ p.true <- p.true + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 p <- p + theme(aspect.ratio=1/1)
 p.true <- p.true + theme(aspect.ratio=1/1)
 g <- grid.arrange(p,p.true,nrow=1,ncol=2)
-ggsave(file="cpop_uneven_examples_ggplot.pdf",g)
+#ggsave(file="cpop_uneven_examples_ggplot.pdf",g)
 
 ##  Section 4.3
 
@@ -262,7 +262,7 @@ p <- p + scale_y_continuous(trans = 'log10')
 p <- p + xlab("n") + ylab("CPU time (sec)")
 p <- p + theme_bw()
 print(p)
-ggsave(file="cpop_CPU_ggplot.pdf", p)
+#ggsave(file="cpop_CPU_ggplot.pdf", p)
 
 ## Section 4.4
 
@@ -313,7 +313,7 @@ p.4 <- p.4 + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 
 g <- grid.arrange(p.1,p.2,p.3,p.4 ,nrow = 2,ncol=2)
 
-ggsave(file="cpop_minseg_ggplot.pdf", g)
+#ggsave(file="cpop_minseg_ggplot.pdf", g)
 
 ## Section 4.5
 
@@ -349,7 +349,7 @@ p.1 <- p.1 + theme(aspect.ratio=1/1)
 p.2 <- p.2 + theme(aspect.ratio=1/1)
 library(cowplot)
 g <- plot_grid(p.1, p.2, align = "v", nrow = 1)
-ggsave(file="cpop_crops_example_ggplot.pdf",g)
+#ggsave(file="cpop_crops_example_ggplot.pdf",g)
 plot(g)
 
 set.seed(1)
@@ -384,7 +384,7 @@ p <- p + geom_vline(xintercept = 45*1:10, color = "blue", linetype = "dashed")
 p.3 <- p + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 
 g <- grid.arrange(p.1,p.2,p.3,layout_matrix=rbind(c(1,2),c(3,3)))
-ggsave(file="cpop_crops_ggplot.pdf",g)
+#ggsave(file="cpop_crops_ggplot.pdf",g)
 
 ## Section 5 
 
@@ -483,4 +483,4 @@ p.4 <- p + theme_bw()
 g <- grid.arrange(p.1,p.2,p.3,p.4,nrow=2,ncol=2)
 
 print(g)
-ggsave(file="cpop_real_data_ggplot.pdf",g)
+#ggsave(file="cpop_real_data_ggplot.pdf",g)
