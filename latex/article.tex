@@ -1,5 +1,5 @@
-%\documentclass[article]{jss}
-\documentclass[nojss]{jss}
+\documentclass[article]{jss}
+%\documentclass[nojss]{jss}
 \usepackage{subfig}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -9,12 +9,12 @@
 %% almost as usual
 \author{Paul Fearnhead\\Lancaster Universtity \And 
         Daniel Grose\\Lancaster University}
-\title{\pkg{cpop}: Detecting changes in piecewise-linear signals}
+\title{\pkg{cpop}: Detecting Changes in Piecewise-Linear Signals}
 
 %% for pretty printing and a nice hypersummary also set:
 \Plainauthor{Paul Fearnhead, Daniel Grose} %% comma-separated
-\Plaintitle{\pkg{cpop}: Detecting changes in piecewise-linear signals} %% without formatting
-\Shorttitle{\pkg{cpop}: Changes in slope} %% a short title (if necessary)
+\Plaintitle{\pkg{cpop}: Detecting Changes in Piecewise-Linear Signals} %% without formatting
+\Shorttitle{\pkg{cpop}: Detecting Changes in Piecewise-Linear signals} %% a short title (if necessary)
 
 %% an abstract and keywords
 \Abstract{
@@ -301,6 +301,8 @@ R> print(p)
 \end{CodeChunk}
 The last two lines of code add the true changepoint locations and the true mean function to the plot. For plotting the changepoint location we omit the first element of \code{changepoints}, which was 0, as that was included just to set the initial slope of the mean and does not correspond to a change-in-slope.
 
+The estimate of the number of changes will depend on both the value of the penalty, \code{beta}, and the assumed standard deviation of the noise, \code{sd}. By considering the form of the criteria (\ref{eq:penalised_cost}) that \code{cpop} minimises we see that if we multiply \code{sd} by some constant $c$ and \code{beta} by $c^2$ then we will obtain the same set of estimated changes. The function \code{cpop} has default values, with \code{sd} estimated based on the second moment of the second differences of the data (as second differences removes a linear signal), and \code{beta} set to $2\log n$, where $n$ is the length of the data. This is a standard default penalty which has good properties if the noise is independent, identically distributed and Gaussian, and \code{sd} is a good estimate of the noise standard deviation. How to use \code{cpop} when these assumptions do not hold, or the noise standard deviation varies or is hard to estimate is discussed in the examples below.
+ 
 \begin{figure}
 \centering
 %\includegraphics[scale=1.0]{figures/cpop-example1.pdf}
@@ -313,10 +315,11 @@ The last two lines of code add the true changepoint locations and the true mean 
 \subsection{Other Functions}
 %
 %
-In addition to \code{plot} and \code{summary}, the \pkg{cpop} package provides functions to evaluate the fitted mean function at specified $x$-values, and to calculate the residuals of the fitted mean. The primary argument of these functions is \code{object} - An instance of a cpop S4 class as produced by the function \code{cpop}.
+In addition to \code{plot} and \code{summary}, the \pkg{cpop} package provides functions to evaluate the fitted mean function at specified $x$-values, and to calculate the residuals of the fitted mean. The primary argument of these functions is \code{object}, an instance of a cpop S4 class as produced by the function \code{cpop}.
 
 The function \code{changepoints(object)}
 creates a data frame containing the locations of the changepoints in terms of the their $x$-values.
+%\newpage
 \begin{CodeChunk}
 \begin{CodeInput}
 R> changepoints(res)
@@ -347,7 +350,7 @@ The function \code{estimate(object, x = object@x, ...)} with argument,
 %\subsubsection{example}
 \begin{CodeChunk}
 \begin{CodeInput}
-R> estimate(res, x = c(0.1,2.7,51.6))
+R> estimate(res, x = c(0.1 ,2.7 ,51.6))
 \end{CodeInput}
 \begin{CodeOutput}
    x     y_hat
@@ -376,6 +379,7 @@ R> fitted(res)
 %
 %
 Finally, the function \code{residuals(object)}  creates a single column matrix containing the residuals.
+\newpage
 %\subsubsection{example}
 \begin{CodeChunk}
 \begin{CodeInput}
@@ -436,7 +440,7 @@ To simulate heterogeneous data we just input a vector of the standard deviation 
 \begin{CodeChunk}
 \begin{CodeInput}
 R> x <- 1:200
-R> sd <- x / 100
+R> sd <- x/100
 R> y <- simchangeslope(x, changepoints, change.slope, sd))
 \end{CodeInput}
 \end{CodeChunk}
@@ -493,18 +497,19 @@ The computational cost for \code{cpop} increases with the size of the number of 
 Thus for large data sets, we can substantially reduce the computational cost of running \code{cpop} by using a smaller grid of potential change locations. Obviously this comes with the drawback of a potential loss of accuracy with regards to the estimated changepoint locations. However one possible approach is to run \code{cpop} with a coarse grid, and then re-run the algorithm with a finer grid around the estimated changepoints.
 
 To see this we implemented the scheme for a data set with $n=6400$ and a fixed segment size of 200.  We initially ran \code{cpop} with a grid with potential changes allowed every 16 observations.
+%\newpage
 \begin{CodeChunk}
 \begin{CodeInput}
 R> x <- 1:6400
 R> y <- simchangeslope(x, changepoints = 0:31*200, 
-+ change.slope = c(0.05,0.1*(-1)^(1:(31))), sigma = 1)
++ change.slope = c(0.05, 0.1*(-1)^(1:(31))), sigma = 1)
 \end{CodeInput}
 \end{CodeChunk}
 
 We use a smaller value for the penalty due to the smaller grid size, and the fact that this is a preliminary step to find roughly where the changes are: so the key is to avoid missing changes. Spurious changes can still be removed when we perform our final run of \code{cpop}. 
 \begin{CodeChunk}
 \begin{CodeInput}
-R> res.coarse <- cpop(y, x, grid=1:399*16, beta = 2*log(400), sd = 1)
+R> res.coarse <- cpop(y, x, grid = 1:399*16, beta = 2*log(400), sd = 1)
 \end{CodeInput}
 \end{CodeChunk}
 
@@ -516,7 +521,7 @@ R> cps <- unlist(changepoints(res.coarse))
 R> grid <- NULL
 R> for(i in 1:length(cps))
 R> {
-R>   grid <- c(grid, cps[i] + (-7):8)
+R>   grid <- c(grid, cps[i]+(-7):8)
 R> }
 
 R> res.fine <- cpop(y, x, grid, beta = 2*log(length(x)), sd = 1)
@@ -546,7 +551,7 @@ We then estimated the changepoint locations both without a minimum segment lengt
 \begin{CodeChunk}
 \begin{CodeInput}
 R> res.min <- cpop(y, x, beta = 2*log(length(y)),
-  +. minseglen = 10, sd = sqrt(2) )
++  minseglen = 10, sd = sqrt(2) )
 \end{CodeInput}
 \end{CodeChunk}
 The argument \code{sd = sqrt(2)} is because $t_4$ distributed noise has a variance of 2.
@@ -594,21 +599,21 @@ The choice of the penalty, \code{beta}, in \code{cpop} can have a substantial im
 
 The idea of CROPS is that it allows a penalised cost method to be implemented for all penalty values in an interval. This is implemented within the \pkg{cpop} package by the function:
 \begin{CodeInput}
-cpop.crops(y, x = 1:length(y), grid = x, beta_min = 1.5 * log(length(y)),
-  beta_max = 2.5 * log(length(y)), sd =  sqrt(mean(diff(diff(y))^2)/6), 
+cpop.crops(y, x = 1:length(y), grid = x, beta_min = 1.5*log(length(y)),
+  beta_max = 2.5*log(length(y)), sd =  sqrt(mean(diff(diff(y))^2)/6), 
   minseglen = 0, prune.approx = FALSE)
 \end{CodeInput}
 The arguments of \code{cpop.crops} are identical to those of \code{cpop} except that, rather than specifying a single penalty value (\code{beta}), the range of penalty values to be used is specified by \code{beta_min} and \code{beta_max}, which fix the smallest and largest penalty value to be used. The output is an instance of an S4 class that contains details of all segmentations found by minimising the penalised cost for some penalty value in the interval between \code{beta_min} and \code{beta_max}.
 
 To see the use of \code{cpop.crops}, consider an application where we do not know the standard deviation of the noise. Under our criteria (\ref{eq:penalised_cost}), the optimal segmentation with penalty $c^2 \beta$ and standard deviation $\sigma_i/c$ will be the same if we fix $\beta$ and $\sigma_{1:n}$ but vary $c>0$. Thus under an assumption that the noise is homogeneous, we can run \code{cpop} with \code{sd = 1} but for a range of $\beta \in [2\sigma_{-}^2\log n,2\sigma_{+}^2\log n]$, and this will give us the optimal segmentations for $\beta=2 \log n$ as we vary noise standard deviation between $\sigma_{-}$ and $\sigma_{+}$.
 
-We simulated data as per Section \ref{sec:cpop} but with \code{sd = 1.5}. To run CPOP for a range of $\beta\in[7.5, 50]$ we use
+We simulated data as per Section \ref{sec:cpop} but with \code{sd = 1.5}. To run CPOP for a range of $\beta\in[5, 50]$ we use
 \begin{CodeInput}
 R> res.crops <- cpop.crops(y, x, beta_min = 5, beta_max = 50, sd = 1)
 \end{CodeInput}
-For our example $2 \log n = 10.6$, so this is equivalent to trying noise standard deviation in the range $[0.8,2.2]$. 
+For our example $2 \log n = 10.6$, so this is equivalent to trying noise standard deviation in the range $[0.69,2.2]$. 
 
-We can plot the location in the changepoints for each segmentation found by CPOP for $\beta\in[7.5,50]$
+We can plot the location in the changepoints for each segmentation found by CPOP for $\beta\in[5,50]$
 \begin{CodeInput}
 R> plot(res.crops)
 \end{CodeInput}
@@ -632,8 +637,7 @@ R> ncps <- segmentations(res.crops )[,4]
 R> n <- length(y)
 R> for(j in 1:M)
 R> {
-R>   BIC[i] <- n * log(mean((residuals(models[[j]]))^2)) 
-+    + 2 * ncps[i] * log(n)
+R>   BIC[i] <- n*log(mean((residuals(models[[j]]))^2)) + 2*ncps[i]*log(n)
 R> }
 \end{CodeInput}
 \end{CodeChunk}
@@ -671,9 +675,9 @@ We simulated data with $n=500$ data points and $10$ equally spaced changepoints.
 R> n <- 500
 R> x <- 1:n
 R> mu <- simchangeslope(x, changepoints = 45*0:10, 
-+  change.slope = c(0.15,0.3*(-1)^(1:10)), sd = 0)
++  change.slope = c(0.15, 0.3*(-1)^(1:10)), sd = 0)
 R> epsilon <- rnorm(n+2)
-R> y <- mu + (epsilon[1:n] + epsilon[2:(n+1)] + epsilon[3:(n+2)]) / sqrt(3)
+R> y <- mu + (epsilon[1:n] + epsilon[2:(n+1)] + epsilon[3:(n+2)])/sqrt(3)
 \end{CodeInput}
 \end{CodeChunk}
 The noise is MA(3), and we simulate the data by first calculating the mean function, \code{mu}, and then adding the MA(3) noise.
@@ -733,9 +737,10 @@ R> y <- log(wavenumber_spectra[-(1:3),4])
 
 R> grid <- seq(from = min(x), to = max(x), length = 200)
 
-R> sig2 <- mean( diff( diff(y) )^2 )/6 
+R> sig2 <- mean(diff(diff(y))^2)/6 
 
-R> res <- cpop(y, x, grid, sd = sqrt(sig2), minseglen = 0.09, beta = 2*log(200))
+R> res <- cpop(y, x, grid, sd = sqrt(sig2), 
++              minseglen = 0.09, beta = 2*log(200))
 \end{CodeInput}
 \end{CodeChunk}
 Here we estimate the noise variance, \code{sig2}, based on the variance of the double difference of the data. For regions where the mean is linear and the data is evenly spaced, taking the double difference will lead to a mean zero process. If the noise is IID with variance $\sigma^2$ then the double-differenced process will have a marginal variance that is $6\sigma^2$. Thus our estimate is the empirical mean of the square of the double-difference data divided by 6. The original data is evenly spaced in in terms of wavenumber, but as we take logs, \code{x} is unevenly spaced: so this estimator will be biased in our setting. However it will give a reasonable ball-park figure for an initial run of \code{cpop} -- the residuals from which can then be used to get a better estimate of the noise variance. We use a evenly spaced grid for possible change-point locations. To avoid the potential for adding multiple changepoints between two observations, we set a minimum segment length of 0.09 (as the largest distance between consecutive \code{x} values is 0.08).
@@ -755,13 +760,13 @@ The output is shown in the top-right plot of Figure \ref{fig:crops.data}, and ap
 R> r2 <- residuals(res)^2
 R> loglik <- function(par)
 R> { 
-R>  return(length(r2) * par[1] + par[2] * sum(x) 
-  + sum(r2 / (exp(par[1]+par[2]*x))))
+R>  return(length(r2)*par[1] + par[2]*sum(x) + 
++          sum(r2/(exp(par[1]+par[2]*x))))
 R> }
 R> est.hat <- optim(c(0,0), loglik)
 R> sig2 <- exp(est.hat$par[1] + est.hat$par[2]*x)
 R> res2 <- cpop(y, x, grid, sd = sqrt(sig2), 
-+               minseglen = 0.09, beta =2*log(200))
++               minseglen = 0.09, beta = 2*log(200))
 \end{CodeInput}
 \end{CodeChunk}
 Here we have calculated the maximum likelihood estimates by using \code{optim} to minimise minus the log-likelihood. The resulting output from \code{cpop} is shown in the bottom left plot of Figure \ref{fig:crops.data}.  The first two changes could represent real regime transitions relating to the inviscid fluid physics that one would see in the real ocean \cite[see Figure 6a of][]{callies2013interpreting}, while the three changes for the largest values of \code{x} may relate to a breakdown in the numerical ocean model near the highest wavenumber of the ocean model grid \cite[]{soufflet2016effective}. The estimates of the spectra for all four series, obtained by repeating this approach, is also shown in Figure \ref{fig:crops.data}. For this application, the residuals from the fitted model appear to be uncorrelated and sub-Gaussian, so using the fit based on the default penalty choice is reasonable. Though one could also explore segmentations for other penalty choices using \code{cpop.crops} as in the previous section.
