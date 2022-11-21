@@ -1,8 +1,11 @@
 # cpop: Detecting Changes in Piecewise-Linear Signals
 ## Paul Fearnhead and Daniel Grose
+library(ggplot2)
+
 ## Section 1
 ### Figure 1
 #### simulate data
+
 
 library(cpop)
 set.seed(1)
@@ -41,7 +44,6 @@ for(i in 1:dim(out.tf$fit)[2]){
 ##inspection gives that the 38th penalty value gives 7 changes.
 fit2 <- out.tf$fit[,38]
 
-library(ggplot2)
 
 df <- data.frame("x" = x, "y" = y,"dy"=  c(NA,dy))
 
@@ -209,29 +211,29 @@ summary(res)
   n.st <- 200*2^(0:5)
   ##scenario 1 -- one changepoint
   K <- 10 ##number of replications
-  time1 <- matrix(NA,nrow=K,ncol=length(n.st))
-  time1g <- matrix(NA,nrow=K,ncol=length(n.st))
+  time1 <- matrix(0,nrow=K,ncol=length(n.st))
+  time1g <- matrix(0,nrow=K,ncol=length(n.st))
   for(i in 1:length(n.st)){
     n <- n.st[i]
     for(k in 1:K){
       y <- simchangeslope(1:n,n/2,0.5,1)
-      time1[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1)))[1]
-      time1g[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1,grid=(1:n.st[1])*(n/n.st[1]))))[1]
+      time1[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1)))[3]
+      time1g[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1,grid=(1:n.st[1])*(n/n.st[1]))))[3]
     }
   }
   
   n.st <- 200*2^(0:5)
   ##scenario 2 -- linear increasing changepoint
   K <- 10 ##number of replications
-  time2 <- matrix(NA,nrow=K,ncol=length(n.st))
-  time2g <- matrix(NA,nrow=K,ncol=length(n.st))
+  time2 <- matrix(0,nrow=K,ncol=length(n.st))
+  time2g <- matrix(0,nrow=K,ncol=length(n.st))
   for(i in 1:length(n.st)){
     n <- n.st[i]
     for(k in 1:K){
       m <- 2*n/n.st[1]
       y <- simchangeslope(1:n,0:(m-1)*n/m,c(0.05,0.1*(-1)^(1:(m-1))),1)
-      time2[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1)))[1]
-      time2g[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1,grid=(1:n.st[1])*(n/n.st[1]))))[1]
+      time2[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1)))[3]
+      time2g[k,i] <- (system.time(cpop(y,beta=2*log(length(y)),sd=1,grid=(1:n.st[1])*(n/n.st[1]))))[3]
     }
   }
 #  save(time1,time2,time1g,time2g,file="/Users/paulfearnhead/Dropbox/Apps/Overleaf/JSS: CPOP/time.Rdata")
