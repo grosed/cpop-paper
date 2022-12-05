@@ -1,0 +1,143 @@
+\title{cpop: Detecting changes in piecewise-linear signals -- response to review and pre-screening comments}
+\author{Paul Fearnhead and Daniel Grose}
+\date{\today}
+
+
+
+\documentclass[12pt]{article}
+
+\usepackage[dvipsnames]{xcolor}
+
+\begin{document}
+\maketitle
+\noindent
+{\bf Response to pre-screening comments II }
+\\
+
+We have added spaces to the code to facilitate reading: with spaces before and after operators and after commas.
+
+We believe the paper has commas after e.g. and i.e.
+
+We believe we have used latex commands proglang, pkg and code throughout.
+
+We believe all software packages have been cited as per the package instructions -- though most of these are to the original research papers, or papers in JSS, rather than a citation for the package itself.
+
+All references are in title style.
+
+\noindent
+{\bf Response to pre-screening comments I }
+\\
+
+Thanks for the careful reading of our paper, and the helpful comments. We apologise for not fully meeting the journal's stylistic requirements. We have now updated the paper as requested:
+\begin{itemize}
+\item[(i)] We have replaced the use of cat() with message() in the code.
+\item[(ii)] We have used the third (rather than first) argument of system.time when calculating the plot comparing timings of methods.
+\item[(iii)] We have corrected the incorrect code chunks for loops etc. (i.e., replacing R $>$ with +).
+\item[(iv)] The section and subsection titles are now in sentence style; citations are in title style.
+\item[(v)] We have added commas after i.e. and e.g. and ensured we have used prog, code and proglang throughout.
+\item[(vi)] Where they have citation info, we have ensured that all R packages are cited per this information.
+\end{itemize}
+
+For convenient we append below the summary and point-by-point response to the reviewers' comments on the previous version of the paper.
+
+\pagebreak
+\noindent
+{\bf Response to reviewers' comments}
+\\
+
+Below we reproduce the comments on the original version of our paper ``cpop: Detecting changes in piecewise-linear signals", together with a point-by-point responses and summary of the changes we have made to the paper and the package. The original comments are in italics.
+
+\begin{itemize}
+\item {\em The current package version is 1.0.3. Unfortunately the package does not contain a NEWS file which would allow to easily assess which functionality was added since version 0.0.3. Presumably the extensions cover unevenly spaced data, heterogeneous noise variance, and the possibility of a grid of potential change locations different from the locations of the data points.}
+
+We have now added a NEWS file.
+
+\item {\em The manuscript contains a section on R packages for changepoint detection. However, this section fails to relate the functionality provided by these packages to the functionality provided by the presented package. It would seem important to highlight for which use cases which packages would seem appropriate to guide potential users. In addition for the Journal of Statistical Software the software overview should cover statistical software packages in general, not only R packages.}
+
+We have changed the title of this section. However, we are unaware of many software packages outside of R that perform changepoint detection, and none that perform change-in-slope. There is one package in Python, called ruptures, that has only been developed recently and claims to be the first Python package for changepoints. However this does not do change-in-slope. We have added a reference to this package within the paper. 
+
+The paper emphasises the difference in the methods for change-in-slope detecting in the first part of the Introduction (see also Figure 1), and now states more clearly the extra functionality of the cpop package over the packages for NOT and trend-filtering.
+
+\item {\em Function cpop has an argument sd with default value 1. It seems questionable that this is a reasonable default value for any kind of data but maybe rather a data-driven default value would seem more appropriate. To enhance the usability of the package more guidance should be provided on how this argument should be chosen and for example provide a function argument specification which determines a data-driven value. Note that the Journal of Statistical Software aims at publishing statistical software which particularly helps users in their data analysis providing suitable tools to do not conveniently.}
+
+We have now implemented a default method for estimating the standard deviation of the noise -- based on the variance of the second differences of the data. We have also added a warning if the user does not specify the standard deviation (and thus this default is used). We have similarly added a warning if the user does not specify the penalty (beta) -- as errors in specifying sd or beta have the same affect of impacting the estimate of the number of changepoints.
+
+How to estimate the noise standard deviation is covered in some of the examples int he paper, and in particular we suggest using the CROPS function to run CPOP with a range of beta values (which is equivalent to running it for a fixed beta value and a range of sd values).
+
+\item {\em Loading the package gives:}
+\begin{verbatim}
+> library("cpop")
+Loading required package: crops
+Loading required package: pacman
+Attaching package: ‘cpop’
+The following object is masked from ‘package:stats’:
+fitted
+The following object is masked from ‘package:methods’:
+show
+\end{verbatim}
+{\em Clearly the masking should be avoided. E.g., by including}
+\begin{verbatim}
+    setGeneric("fitted", package = "stats")
+\end{verbatim}
+{\em and also importing show from methods.}
+
+The methods shown and fitted in the cpop package were being set as generic methods with no reference to any existing S4 method of that name. This has now been prevented by including a test to see if these methods have already been set as generic, for instance, by another package.
+
+
+\item {\em The output of}
+\begin{verbatim}
+> help(package = "cpop")
+\end{verbatim}
+{\em indicates that the vignette name "article" might not be very suitable and the documentation}
+\begin{verbatim}
+cpop cpop
+\end{verbatim}
+{\em is not very informative. Also the titles are not consistent in title or sentence style.
+The description contains (2018) but it seems the paper was published in 2019.}
+
+The vignette has been renamed to cpop. The documentation for the cpop function has been extended and the titles
+for all sections of the documentation has been changed to sentence style. The date has been corrected in the packages DESCRIPTION file.
+
+\item {\em The code defines twice a function null2na which is not called within the package and also not exported.}
+
+The redundant functions have been removed from the package.
+
+\item {\em Running example(cpop) and then using estimate() gives the following results:}
+\begin{verbatim}
+> estimate(res.true, x = 100)
+x y_hat
+1 100 11.0609
+> estimate(res.true, x = res.true@x[50])
+x y_hat
+100 11.0609
+> tail(estimate(res.true))
+x y_hat
+45 81.00 10.37956
+46 84.64 10.43842
+47 88.36 10.49856
+48 92.16 10.56001
+49 96.04 10.62274
+50 100.00 10.68677
+\end{verbatim}
+{\em It is unclear why results differ for specific locations in case more locations are simultaneously evaluated.}
+
+This incorrect behaviour was a consequence of a coding error in the estimate funciton. This has now been corrected.
+
+\item {\em The code shown in the manuscript is}
+\begin{verbatim}
+R> res <- cpop(y, x, grid, sd = sqrt(sig2), minseg = 0.2, 
+beta = 2*log(200))    
+\end{verbatim}
+{\em with comment in the text:
+To avoid the potential for adding multiple changepoints between two observations, we set a minimum segment length of 0.09 (as the largest distance between consecutive x values is 0.08).
+The code in the replication material then reads:}
+\begin{verbatim}
+res <- cpop(y, x, grid, sd=sqrt(sig2), minseg = 0.09,
+beta=2*log(200))
+\end{verbatim}
+
+The code in the manuscript has been changed 
+so that the article and the reproduction script are now consistent.
+
+\end{itemize}
+\end{document}
