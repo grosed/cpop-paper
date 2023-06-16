@@ -44,45 +44,92 @@ for(i in 1:dim(out.tf $ fit)[2]){
 ##inspection gives that the 38th penalty value gives 7 changes.
 fit2 <- out.tf $ fit[, 38]
 
+#4. piecewise linear with no continuity constraint
+library(changepoints)
+gamma_set = seq(7,14,by=0.25) 
+##use CV to choose L_0 penalty
+DP_result = CV.search.DP.poly(y, r = 1, gamma_set, delta = 5)
+min_idx = which.min(DP_result$test_error)
 
+#run with "best" penalty; and min-segment size of 5.
+cpt_hat = DP.poly(y, r = 1, gamma_set[min_idx], delta = 5)
+
+###FIGURE
 df <- data.frame("x" = x, "y" = y,"dy"=  c(NA, dy))
 
+#data
 p.1 <- ggplot(data = df, aes(x = x, y = y))
 p.1 <- p.1 + geom_point(alpha = 0.4)
 p.1 <- p.1 + geom_line(aes(y = mu), color = "blue")
 p.1 <- p.1 + theme_bw()
 p.1 <- p.1 + xlab("Time") + ylab("Data")
 
+##change-in-mean on difference data
 p.2 <- ggplot(data = df, aes(x = x, y = dy))
 p.2 <- p.2 + geom_point(alpha = 0.4)
-p.2 <- p.2 + geom_vline(xintercept = changepoints[-1], color = "blue", linetype = "dashed")
+p.2 <- p.2 + geom_vline(xintercept = changepoints[-1], color = "light blue", linetype = "dashed")
 p.2 <- p.2 + geom_vline(xintercept = cpts.full(out)[3, ],color = "red",linetype = "dashed")
 p.2 <- p.2 + theme_bw()
 p.2 <- p.2 + xlab("Time") + ylab("First Differences")
 
+#Trend-filter 1
 p.3 <- ggplot(data = df, aes(x = x, y = y))
 p.3 <- p.3 + geom_point(alpha = 0.4)
-p.3 <- p.3 + geom_line(aes(y = mu), color = "blue")
+p.3 <- p.3 + geom_line(aes(y = mu), color = "light blue")
 p.3 <- p.3 + geom_line(aes(y = fit1), color = "red")
-p.3 <- p.3 + geom_vline(xintercept = changepoints[-1], color = "blue", linetype = "dashed")
+p.3 <- p.3 + geom_vline(xintercept = changepoints[-1], color = "light blue", linetype = "dashed")
 p.3 <- p.3 + geom_vline(xintercept = (1:399)[abs(diff(diff(fit1))) > 0.001]+1, color = "red", linetype = "dashed")
 p.3 <- p.3 + theme_bw()
 p.3 <- p.3 + xlab("Time") + ylab("Data")
 
+#Trend-filter 2
 p.4 <- ggplot(data = df, aes(x = x, y = y))
 p.4 <- p.4 + geom_point(alpha = 0.4)
-p.4 <- p.4 + geom_line(aes(y = mu), color = "blue")
+p.4 <- p.4 + geom_line(aes(y = mu), color = "light blue")
 p.4 <- p.4 + geom_line(aes(y = fit2), color = "red")
-p.4 <- p.4 + geom_vline(xintercept = changepoints[-1], color = "blue", linetype = "dashed")
+p.4 <- p.4 + geom_vline(xintercept = changepoints[-1], color = "light blue", linetype = "dashed")
 p.4 <- p.4 + geom_vline(xintercept = (1:399)[abs(diff(diff(fit2))) > 0.001]+1, color = "red", linetype = "dashed")
 p.4 <- p.4 + theme_bw()
 p.4 <- p.4 + xlab("Time") + ylab("Data")
 
+#cpop
+
+p.5 <- ggplot(data = df, aes(x = x, y = y))
+p.5 <- p.5 + geom_point(alpha = 0.4)
+p.5 <- p.5 + geom_line(aes(y = mu), color = "light blue")
+p.5 <- p.5 + geom_line(aes(y = estimate(res)[,2]), color = "red")
+p.5 <- p.5 + geom_vline(xintercept = changepoints[-1], color = "light blue", linetype = "dashed")
+p.5 <- p.5 + geom_vline(xintercept = unlist(changepoints(res)), color = "red", linetype = "dashed")
+p.5 <- p.5 + theme_bw()
+p.5 <- p.5 + xlab("Time") + ylab("Data")
+
+#piecewise linear no continuity
+
+p.6 <- ggplot(data = df, aes(x = x, y = y))
+p.6 <- p.6 + geom_point(alpha = 0.4)
+p.6 <- p.6 + geom_line(aes(y = mu), color = "light blue")
+#lines for each segment
+cps <- c( 0, cpt_hat$cpt, 400)
+m <- length(cps) - 1 ##number of segments
+lines.df <- data.frame(
+  x = x[ cps[1:m] + 1 ],
+  xend = x[ cps[2:(m+1)] ],
+  y = cpt_hat$yhat[ cps[1:m] + 1 ],
+  yend = cpt_hat$yhat[ cps[2:(m+1)] ]
+)
+p.6 <- p.6 + geom_segment( data = lines.df, mapping = aes(x = x, y = y, xend = xend, yend = yend), color = "red" )
+
+p.6 <- p.6 + geom_vline(xintercept = changepoints[-1], color = "light blue", linetype = "dashed")
+p.6 <- p.6 + geom_vline(xintercept = cpt_hat$cpt, color = "red", linetype = "dashed")
+p.6 <- p.6 + theme_bw()
+p.6 <- p.6 + xlab("Time") + ylab("Data")
+
+
 library(gridExtra)
 
-g <- grid.arrange(p.1, p.2, p.3, p.4, nrow = 2, ncol=2)
+g <- grid.arrange(p.1, p.2,  p.3, p.4, p.6, p.5, nrow = 3, ncol=2)
 
-ggsave(file="change_in_slope_examples_ggplot.pdf", g)
+#ggsave(file="change_in_slope_examples_ggplot.pdf", g, width=7,height=8,units="in")
 
 ## Section 3.1
 
@@ -105,7 +152,7 @@ print(p)
 
 #### Figure 2
 
-ggsave(file="simulate_example_ggplot.pdf",p)
+#ggsave(file="simulate_example_ggplot.pdf",p)
 
 ## Section 3.2
 
@@ -120,7 +167,7 @@ print(p)
 
 #### Figure 3
 
-ggsave(file="cpop_example1_ggplot.pdf",p)
+#ggsave(file="cpop_example1_ggplot.pdf",p)
 
 ## Section 3.3
 
@@ -151,7 +198,7 @@ p <- plot(res)
 p <- p + geom_vline(xintercept = changepoints[-1], color = "blue", linetype = "dashed")
 p <- p + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 print(p)
-ggsave(file="cpop_example_uneven_ggplot.pdf",p)
+#ggsave(file="cpop_example_uneven_ggplot.pdf",p)
 
 
 ## Section 4.2
@@ -180,7 +227,7 @@ p.true <- p.true + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 p <- p + theme(aspect.ratio = 1 / 1)
 p.true <- p.true + theme(aspect.ratio = 1 / 1)
 g <- grid.arrange(p, p.true, nrow = 1, ncol = 2)
-ggsave(file="cpop_uneven_examples_ggplot.pdf",g)
+#ggsave(file="cpop_uneven_examples_ggplot.pdf",g)
 
 ##  Section 4.3
 
@@ -244,14 +291,54 @@ t1 <- apply(time1, 2, mean)
 t2 <- apply(time2, 2, mean)
 t1g <- apply(time1g, 2, mean)
 t2g <- apply(time2g, 2, mean)
+###now repeat with randomly simulated x points
+set.seed(1)
+n.st <- 200 * 2 ^ (0:5)
+##scenario 1 -- one changepoint -- random x
+K <- 10 ##number of replications
+time1n <- matrix(0,nrow = K, ncol = length(n.st))
+time1gn <- matrix(0, nrow = K, ncol = length(n.st))
+for(i in 1:length(n.st)){
+  n <- n.st[i]
+  for(k in 1:K){
+    x=sort(runif(n,0,n))
+    y <- simchangeslope(x, n / 2, 0.5, 1)
+    time1n[k, i] <- (system.time(cpop(y, x = x, beta = 2 * log(length(y)), sd = 1)))[3]
+    time1gn[k, i] <- (system.time(cpop(y, x = x, beta = 2 * log(length(y)), sd = 1, grid = (1:n.st[1]) * (n / n.st[1]))))[3]
+  }
+}
+
+n.st <- 200 * 2 ^ (0:5)
+##scenario 2 -- linear increasing changepoint -- random x
+K <- 10 ##number of replications
+time2n <- matrix(0, nrow = K, ncol = length(n.st))
+time2gn <- matrix(0, nrow = K, ncol = length(n.st))
+for(i in 1:length(n.st)){
+  n <- n.st[i]
+  for(k in 1:K){
+    m <- 2 * n / n.st[1]
+    x=sort(runif(n,0,n))
+    y <- simchangeslope(x, 0:(m - 1) * n / m, c(0.05, 0.1 * (-1) ^ (1:(m - 1))), 1)
+    time2n[k, i] <- (system.time(cpop(y, x = x, beta = 2 * log(length(y)), sd = 1)))[3]
+    time2gn[k, i] <- (system.time(cpop(y, x = x, beta = 2 * log(length(y)), sd = 1,grid = (1:n.st[1]) * (n / n.st[1]))))[3]
+  }
+}
+# save(time1n,time2n,time1gn,time2gn,file="/Users/paulfearnhead/Dropbox/Apps/Overleaf/JSS: CPOP/timen.Rdata")
+#    load("/Users/paulfearnhead/Dropbox/Apps/Overleaf/JSS: CPOP/timen.Rdata")
+
+###average the times
+t1n <- apply(time1n, 2, mean)
+t2n <- apply(time2n, 2, mean)
+t1gn <- apply(time1gn, 2, mean)
+t2gn <- apply(time2gn, 2, mean)
 
 df <- data.frame("x" = n.st,
-                "t1" = t1,
-                "t2" = t2,
-                "t1g" = t1g,
-                "t2g" = t2g,
-                "d1" = t2[1] * n.st ^ 1.7 / n.st[1] ^ 1.7,
-                "d2" = t1[1] * n.st ^ 2.5 / n.st[1] ^ 2.5)
+                 "t1" = t1,
+                 "t2" = t2,
+                 "t1g" = t1g,
+                 "t2g" = t2g,
+                 "d1" = t2[1] * n.st ^ 1.7 / n.st[1] ^ 1.7,
+                 "d2" = t1[1] * n.st ^ 2.4 / n.st[1] ^ 2.5)
 p <- ggplot(data = df, aes(x = x))
 p <- p + geom_line(aes(y = t1))
 p <- p + geom_line(aes(y = t2), color="red")
@@ -259,12 +346,16 @@ p <- p + geom_line(aes(y = t1g), linetype = "dashed")
 p <- p + geom_line(aes(y = t2g), linetype = "dashed", color = "red")
 p <- p + geom_line(aes(y = d1), linetype = "5515", color = "red")
 p <- p + geom_line(aes(y = d2), linetype = "5515")
+p <- p + geom_line(aes(y = t1n), color="grey")
+p <- p + geom_line(aes(y = t2n), color="light pink")
+p <- p + geom_line(aes(y = t1gn), linetype = "dashed", color="grey")
+p <- p + geom_line(aes(y = t2gn), linetype = "dashed", color = "light pink")
 p <- p + scale_x_continuous(trans = 'log10')
 p <- p + scale_y_continuous(trans = 'log10')
 p <- p + xlab("n") + ylab("CPU time (sec)")
 p <- p + theme_bw()
 print(p)
-ggsave(file="cpop_CPU_ggplot.pdf", p, width=5,height=4,units="in")
+#ggsave(file="cpop_CPU_ggplot.pdf", p, width=5,height=4,units="in")
 
 ## Section 4.4
 
@@ -315,7 +406,7 @@ p.4 <- p.4 + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 
 g <- grid.arrange(p.1, p.2, p.3, p.4, nrow = 2, ncol = 2)
 
-ggsave(file="cpop_minseg_ggplot.pdf", g)
+#ggsave(file="cpop_minseg_ggplot.pdf", g)
 
 ## Section 4.5
 
@@ -351,7 +442,7 @@ p.1 <- p.1 + theme(aspect.ratio = 1 / 1)
 p.2 <- p.2 + theme(aspect.ratio = 1 / 1)
 library(cowplot)
 g <- plot_grid(p.1, p.2, align = "v", nrow = 1)
-ggsave(file="cpop_crops_example_ggplot.pdf",g)
+#ggsave(file="cpop_crops_example_ggplot.pdf",g)
 plot(g)
 
 set.seed(1)
@@ -386,7 +477,7 @@ p <- p + geom_vline(xintercept = 45 * 1:10, color = "blue", linetype = "dashed")
 p.3 <- p + geom_line(aes(y = mu), color = "blue", linetype = "dashed")
 
 g <- grid.arrange(p.1, p.2, p.3, layout_matrix = rbind(c(1, 2), c(3, 3)))
-ggsave(file="cpop_crops_ggplot.pdf",g)
+#ggsave(file="cpop_crops_ggplot.pdf",g)
 
 ## Section 5 
 
@@ -426,7 +517,7 @@ wavenumber_est <- function(x, y){
   sig2 <- mean(diff(diff(y)) ^ 2 ) / 6 ##simple estimate of variance 
   
   res <- cpop(y, x, grid, sd = sqrt(sig2), minseglen = 0.09, beta = 2 * log(200))
- 
+  
   r2 <- residuals(res) ^ 2
   est.hat <- optim(c(0, 0), loglik)
   sig2 <- exp(est.hat $ par[1] + est.hat $ par[2]*x)
@@ -449,9 +540,9 @@ p <- p + geom_line(aes(y = power_spectra_Feb2100), color="green")
 p <- p + geom_line(aes(y = power_spectra_Aug2100), color="blue")
 # p <- p + scale_x_continuous(trans = 'log10')
 p <- p + scale_x_continuous(trans = 'log10',breaks = trans_breaks("log10", function(x) 10 ^ x),
-    labels = trans_format("log10", math_format(10 ^ .x)))
+                            labels = trans_format("log10", math_format(10 ^ .x)))
 p <- p + scale_y_continuous(trans = 'log10', breaks = trans_breaks("log10", function(x) 10 ^ x),
-    labels = trans_format("log10", math_format(10 ^ .x)))
+                            labels = trans_format("log10", math_format(10 ^ .x)))
 # p <- p + xlab("wavenumber (cyc/m)") + ylab("log_10 spectra")
 # p <- p + xlab("wavenumber (cyc/m)") +    ylab(TeX("$\\log_{10}$ spectra"))
 p <- p + xlab("wavenumber (cyc/m)") +    ylab("spectra")                            
@@ -476,13 +567,13 @@ p <- p + geom_line(aes(y = exp(y.est[3, ])), color="green", linetype = "dashed")
 p <- p + geom_line(aes(y = exp(y.est[4, ])), color="blue", linetype = "dashed")
 #p <- p + scale_x_continuous(trans = 'log10')
 p <- p + scale_x_continuous(trans = 'log10', breaks = trans_breaks("log10", function(x) 10^x),
-    labels = trans_format("log10", math_format(10 ^ .x)))
+                            labels = trans_format("log10", math_format(10 ^ .x)))
 p <- p + scale_y_continuous(trans = 'log10', breaks = trans_breaks("log10", function(x) 10 ^ x),
-    labels = trans_format("log10", math_format(10 ^ .x)))
+                            labels = trans_format("log10", math_format(10 ^ .x)))
 p <- p + xlab("wavenumber (cyc/m)") + ylab("spectra")
 p.4 <- p + theme_bw()
 
 g <- grid.arrange(p.1, p.2, p.3, p.4, nrow = 2, ncol = 2)
 
 print(g)
-ggsave(file="cpop_real_data_ggplot.pdf",g)
+#ggsave(file="cpop_real_data_ggplot.pdf",g)
