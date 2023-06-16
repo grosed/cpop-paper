@@ -1,4 +1,4 @@
-\title{cpop: Detecting changes in piecewise-linear signals -- response to review and pre-screening comments}
+\title{cpop: Detecting changes in piecewise-linear signals -- response to Reviewers}
 \author{Paul Fearnhead and Daniel Grose}
 \date{\today}
 
@@ -11,29 +11,73 @@
 \begin{document}
 \maketitle
 
-\noindent
-{\bf Response to pre-screening comments}
-\\
-
-Thanks for the careful reading of our paper, and the helpful comments. We apologise for not fully meeting the journal's stylistic requirements. We have now updated the paper as requested:
-\begin{itemize}
-\item[(i)] We have replaced the use of cat() with warning() in the code.
-\item[(ii)] We have used the third (rather than first) argument of system.time when calculating the plot comparing timings of methods.
-\item[(iii)] We have corrected the incorrect code chunks for loops etc. (i.e., replacing R $>$ with +).
-\item[(iv)] The section and subsection titles are now in sentence style; citations are in title style.
-\item[(v)] We have added commas after i.e. and e.g. and ensured we have used prog, code and proglang throughout.
-\item[(vi)] Where they have citation info, we have ensured that all R packages are cited per this information.
-\end{itemize}
-
-For convenient we append below the summary and point-by-point response to the reviewers' comments on the previous version of the paper.
-
-\pagebreak
-\noindent
-{\bf Response to reviewers' comments}
-\\
-
 Below we reproduce the comments on the original version of our paper ``cpop: Detecting changes in piecewise-linear signals", together with a point-by-point responses and summary of the changes we have made to the paper and the package. The original comments are in italics.
 
+\vspace*{1ex}
+
+\noindent
+{\bf Response to Reviewer D}
+
+\begin{itemize}
+\item {\em   Since a piecewise-linear function is a special case of a piecewise-polynomial function, it seems relevant to point out research in detecting changes in piecewise-polynomial trend functions and related software.}
+
+We have added a brief paragraph discussing this link towards the end of the introduction. 
+
+\item {\em   For the function $F_l(\alpha)$ defined on page 7, it is necessary to remark on the case when $l = 1$. The current definition seems incorrect.}
+
+We define the recursion (7) so that it is valid for $l=1$. The initial condition depends on $F_0(\alpha)$, and this is specified after (7) as $F_0(\alpha)=-\beta$. Thus if we consider (7) for $l=1$ with $F_0(\alpha)=-\beta)$ we have
+\[
+F_1(\alpha)=\min_{\alpha'} \left[-\beta +  \mathcal{C}_{0,1}(\alpha,\alpha)  +\beta \right]=  \min_{\alpha'}   ~~ \mathcal{C}_{0,1}(\alpha,\alpha). 
+\]
+As we can have only one segment in this case, this is the correct definition of $F_1(\alpha)$ -- i.e. it is equal to (2) with $K=0$ and conditional on $\alpha_1=\alpha$ (using the definition of $\mathcal{C}_{0,1}(\alpha,\alpha)$).
+
+\item {\em   In Section 4.4, it is mentioned that ‘cpop is slower when a minimum segment length is imposed.’ This claim seems counterintuitive since a large value of the minimum segment length would reduce the computation cost of dynamic programming.}
+
+This is an interesting point. If we were to set a maximum segment length, then this would reduce the computation of dynamic programming, as we can discard all candidate changes that are not consistent with the maximum segment length. But this is possible because these candidate changes can never be the value of the most recent change at later time points (if at time $t$ they produce a segment which is too large, then they would produce a segment that is too large for times $s>t$). This is not the case for a minimum segment length -- we cannot remove candidate changes as they could be relevant at later time points. Thus there is not the same reduction in computational cost.
+
+By comparison they can make the algorithm slower because the PELT pruning ideas that are used to speed up cpop cannot be used when a minimum segment length is imposed. We do suggest an approximate pruning, but this appears to be marginally less effective. We comment on this in the paper, for example at the end of Section 2 and give the empirical increase in computational cost in Section 4.4.
+
+\end{itemize}
+
+Thank you for pointing out the minor typos. These have all been corrected.
+
+\vspace*{1em}
+
+\noindent
+{\bf Response to Reviewer E}
+\begin{itemize}
+\item {\em   A reference is missing: [1]. How does the method compare to the approach in such paper? It would be interesting to replace trend filtering with the method from [1] in Figure 1.}
+
+The method in [1] does not solve the change-in-slope problem, as it does not impose continuity at the changes. As such we do not think it is as relevant as trend-filtering, which does solve the same problem as CPOP, and have kept the trend filtering results. However, we think this is an interesting alternative and have expanded Figure 1 to include an example of the output of this method -- demonstrating the different model that is being fit. We have also added a paragraph to the introduction which cites this work.
+
+\item {\em   Another reference missing is the R package changepoints}
+
+We have added a reference to this package. 
+
+\item {\em   In Section 3.2, why is the default choice of sd set to 
+\begin{verbatim}
+(mean(diff(diff(y))^ 2)/6)
+\end{verbatim}
+In particular, where does the factor 6 come from?}
+
+If we let $\Delta$ be the the difference operator then the $(t-2)$th entry of $\Delta(\Delta y)$ is
+\[
+(y_t-y_{t-1})-(y_{t-1}-y_{t-2})=y_t-2y_{t-1}+y_{t-2}.
+\]
+If $y$ is linear mean plus noise, then the mean of this will be 0, so the variance is the mean of its square. This variance is $\sigma^2+4\sigma^2+\sigma^2=6\sigma^2$, where $\sigma^2$ is the noise variance and we have assumed independence. Hence we need to re-scale by dividing by 6 to get an estimator of the noise variance. We have added a brief comment on this in Section 3.2.
+
+\item {\em   Also in Section 3.2, can the authors elaborate on the output of fitted values? For instance, what does the column RSS represent?}
+
+The RSS values are the (weighted) residual sum of squares of the fitted mean within the corresponding segment. This is mentioned just before the example in Section 3.2.
+
+\item {\em  In Figure 6, is the plot shown corresponding to regular data? how does the computational time behave with irregularly spaced data? }
+
+The Figure was for regularly spaced data. We have repeated the experiment with irregularly space $x$-values (simulated from a uniform distribution on $[0,n]$). We get very similar timings as for the regularly spaced data (see new Figure 6).
+
+\end{itemize}
+
+
+\end{document}
 \begin{itemize}
 \item {\em The current package version is 1.0.3. Unfortunately the package does not contain a NEWS file which would allow to easily assess which functionality was added since version 0.0.3. Presumably the extensions cover unevenly spaced data, heterogeneous noise variance, and the possibility of a grid of potential change locations different from the locations of the data points.}
 
